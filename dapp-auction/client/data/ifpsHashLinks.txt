@@ -1,0 +1,9 @@
+''' Temporary file for you to edit required links'''
+
+https://gateway.pinata.cloud/ipfs/QmPHYV9R742GGFrJx4vkhrSgUNLCrwHerB1DkLDjVTrRrE
+https://gateway.pinata.cloud/ipfs/QmPYwZg9rXuu4PNcagKfhb7mWBDeHgryYpK1cKHsYTvtmD
+
+
+// Links to view nft
+https://testnets.opensea.io/assets/goerli/0x60dd627e671F65b8cDFaf39AA0FB6b00ae1C18D6/1
+https://testnets.opensea.io/assets/goerli/0x60dd627e671F65b8cDFaf39AA0FB6b00ae1C18D6/2

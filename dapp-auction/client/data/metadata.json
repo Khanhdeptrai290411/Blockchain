@@ -1,0 +1,11 @@
+{
+    "name": "Monkey",
+    "description": "An expensive monkey",
+    "image": "https://gateway.pinata.cloud/ipfs/QmRfoMM5yVX48sV5XzbcSYfN8p4yB613Mnd4UsXw3FcSLc",
+    "attributes": [
+        {
+            "trait_type": "Age",
+            "value": "105"
+        }
+    ]
+}
