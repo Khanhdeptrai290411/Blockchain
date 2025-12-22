@@ -1,4 +1,5 @@
 import CloseIcon from '@mui/icons-material/Close';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { Box, TextField } from '@mui/material';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -155,8 +156,13 @@ export default function Creation({ refetchData }) {
 
   return (
     <div>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Create new auction
+      <Button 
+        variant="contained" 
+        onClick={handleClickOpen}
+        startIcon={<AddCircleOutlineIcon />}
+        size="large"
+      >
+        Create New Auction
       </Button>
       <BootstrapDialog
         onClose={handleClose}
@@ -167,7 +173,12 @@ export default function Creation({ refetchData }) {
           id="customized-dialog-title"
           onClose={handleClose}
         >
-          🚀 New Auction
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AddCircleOutlineIcon color="primary" />
+            <Typography variant="h6" fontWeight="bold">
+              Create New Auction
+            </Typography>
+          </Box>
         </BootstrapDialogTitle>
         <DialogContent dividers>
           <Box component="form" onSubmit={handleCreate} sx={{ mt: 1 }}>
@@ -262,9 +273,8 @@ export default function Creation({ refetchData }) {
               Create
             </Button>
           </Box>
-          <Typography gutterBottom>
-            *Note: This only creates the auction, you still need to approve the
-            NFT and start the auction when you are done
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+            Note: After creating the auction, you need to approve the NFT and start the auction.
           </Typography>
         </DialogContent>
         <DialogActions>

@@ -1,4 +1,5 @@
-import { Card, CardContent, TextField, Button, Typography } from '@mui/material';
+import { Card, CardContent, TextField, Button, Typography, Box } from '@mui/material';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useEth } from '../contexts/EthContext';
@@ -89,12 +90,14 @@ function MintNftForm({ onMinted }) {
       }}
     >
       <CardContent>
-        <Typography variant="h4" gutterBottom>
-          Mint NFT
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          Nhập URL metadata (IPFS / HTTP) để tự mint NFT bằng ví MetaMask hiện
-          tại.
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <AddPhotoAlternateIcon color="primary" sx={{ fontSize: 28 }} />
+          <Typography variant="h5" fontWeight="bold">
+            Mint NFT
+          </Typography>
+        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Enter metadata URL (IPFS / HTTP) to mint NFT using your connected MetaMask wallet.
         </Typography>
         <form onSubmit={handleMint}>
           <TextField

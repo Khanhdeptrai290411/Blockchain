@@ -9,15 +9,24 @@ import { useEffect, useState } from 'react';
 import { useEth } from '../contexts/EthContext';
 import { displayInGwei } from '../utils';
 import CountdownTimer from './CountdownTimer';
+import { Chip, Divider as MuiDivider } from '@mui/material';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import WarningIcon from '@mui/icons-material/Warning';
 
 const style = {
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: 500,
+  maxWidth: '90vw',
+  maxHeight: '90vh',
+  overflowY: 'auto',
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  border: 'none',
+  borderRadius: 2,
   boxShadow: 24,
   p: 4,
 };
@@ -339,32 +348,60 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
 
   return (
     <>
-      <Button onClick={handleOpen}>Open</Button>
+      <Button 
+        onClick={handleOpen}
+        variant="contained"
+        color="primary"
+        size="medium"
+      >
+        View Details
+      </Button>
       <Modal open={open} onClose={handleClose}>
         <Box sx={style}>
-          <Box display="flex" justifyContent={'space-between'}>
-            <Button onClick={() => logAuctionData(auctionData)}>
-              Debug auction in console
+          <Box display="flex" justifyContent={'space-between'} alignItems="center" sx={{ mb: 2 }}>
+            <Button 
+              onClick={() => logAuctionData(auctionData)}
+              size="small"
+              variant="text"
+              color="inherit"
+            >
+              Debug
             </Button>
-            <Button onClick={handleClose}>Close</Button>
+            <Button 
+              onClick={handleClose}
+              variant="outlined"
+              size="small"
+            >
+              Close
+            </Button>
           </Box>
           <Box
             sx={{
               marginLeft: '14px',
             }}
           >
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Title: {pinataMetadata?.name ?? 'Unnamed NFT'}
+            <Typography id="modal-modal-title" variant="h5" component="h2" fontWeight="bold" sx={{ mb: 2 }}>
+              {pinataMetadata?.name ?? 'Unnamed NFT'}
             </Typography>
-            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              Highest Bid: {displayInGwei(highestBid)} gwei
-            </Typography>
-            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              Time Till Expiry:{' '}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Highest Bid
+              </Typography>
+              <Chip
+                label={`${displayInGwei(highestBid)} gwei`}
+                color="primary"
+                size="medium"
+                sx={{ fontWeight: 'bold' }}
+              />
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Time Remaining
+              </Typography>
               {auctionData.ended ? (
-                <span>
-                  <i>Auction has already ended</i>
-                </span>
+                <Typography variant="body1" color="error" fontStyle="italic">
+                  Auction has already ended
+                </Typography>
               ) : auctionData.started ? (
                 <CountdownTimer
                   initialHour={timeTillExpiryHours}
@@ -372,12 +409,12 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
                   initialSecond={timeTillExpirySeconds}
                 />
               ) : (
-                <span>
-                  <i>Auction has not yet started</i>
-                </span>
+                <Typography variant="body1" color="text.secondary" fontStyle="italic">
+                  Auction has not yet started
+                </Typography>
               )}
-            </Typography>
-            <hr />
+            </Box>
+            <MuiDivider sx={{ my: 2 }} />
             <Box
               sx={{
                 display: 'flex',
@@ -394,73 +431,112 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
               >
                 {role === 'seller' && (
                   <>
-                    {!auctionData.started && !isApproved && (
-                      <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
-                        <Typography variant="body2" color="warning.main">
-                          ⚠️ NFT must be approved before starting auction
-                        </Typography>
-                        <Button
-                          variant="contained"
-                          color="warning"
-                          onClick={handleApproveNFT}
-                          disabled={checkingApproval}
-                        >
-                          {checkingApproval ? 'Checking...' : 'Approve NFT'}
-                        </Button>
-                      </Box>
-                    )}
-                    <Typography>
-                      As the seller, you can{' '}
-                      <Button
-                        variant="contained"
-                        onClick={handleStartAuction}
-                        disabled={!auctionData.started && !isApproved}
-                      >
-                        Start
-                      </Button>{' '}
-                      <Button variant="contained" onClick={handleEnd}>
-                        End
-                      </Button>
-                    </Typography>
+                     {!auctionData.started && !isApproved && (
+                       <Box 
+                         display="flex" 
+                         flexDirection="column" 
+                         alignItems="center" 
+                         gap={2}
+                         sx={{
+                           p: 2,
+                           borderRadius: 2,
+                           bgcolor: 'warning.light',
+                           width: '100%',
+                           mb: 2,
+                         }}
+                       >
+                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                           <WarningIcon color="warning" />
+                           <Typography variant="body2" fontWeight="medium">
+                             NFT must be approved before starting auction
+                           </Typography>
+                         </Box>
+                         <Button
+                           variant="contained"
+                           color="warning"
+                           onClick={handleApproveNFT}
+                           disabled={checkingApproval}
+                           size="large"
+                           startIcon={checkingApproval ? null : <CheckCircleIcon />}
+                         >
+                           {checkingApproval ? 'Checking...' : 'Approve NFT'}
+                         </Button>
+                       </Box>
+                     )}
+                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
+                       <Button
+                         variant="contained"
+                         color="primary"
+                         onClick={handleStartAuction}
+                         disabled={!auctionData.started && !isApproved}
+                         size="large"
+                         startIcon={<PlayArrowIcon />}
+                       >
+                         Start Auction
+                       </Button>
+                       <Button 
+                         variant="outlined" 
+                         color="error"
+                         onClick={handleEnd}
+                         size="large"
+                         startIcon={<StopIcon />}
+                       >
+                         End Auction
+                       </Button>
+                     </Box>
                   </>
                 )}
                 {(role === 'notBidder' || role === 'bidder') && (
-                  <Box display="flex">
+                  <Box display="flex" gap={1} sx={{ width: '100%', maxWidth: 400 }}>
                     <TextField
                       id="modal-bid"
-                      label="My Bid (GWei)"
+                      label="Bid Amount (GWei)"
                       type="number"
                       variant="outlined"
                       required
                       min={0}
-                      size="small"
+                      fullWidth
                       onChange={handleBidAmountChange}
                     />
-                    <Button variant="contained" onClick={submitBid}>
+                    <Button 
+                      variant="contained" 
+                      onClick={submitBid}
+                      size="large"
+                      sx={{ minWidth: 120 }}
+                    >
                       Submit Bid
                     </Button>
                   </Box>
                 )}
 
                 {role === 'bidder' && (
-                  <Box display="flex">
-                    <Typography>
-                      No longer interested?{' '}
-                      <Button variant="contained" onClick={handleWithdraw}>
-                        {' '}
-                        Withdraw{' '}
-                      </Button>
-                    </Typography>
+                  <Box sx={{ mt: 1 }}>
+                    <Button 
+                      variant="outlined" 
+                      color="secondary"
+                      onClick={handleWithdraw}
+                      size="medium"
+                    >
+                      Withdraw Bid
+                    </Button>
                   </Box>
                 )}
 
                 {role === 'highestBidder' && (
-                  <Typography>
-                    As the highest bidder:{' '}
-                    <Button variant="contained" onClick={handleEnd}>
-                      End
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                    <Typography variant="body2" color="success.main" fontWeight="medium">
+                      🎉 You are the highest bidder!
+                    </Typography>
+                    <Button 
+                      variant="outlined" 
+                      color="error"
+                      onClick={handleEnd}
+                      size="large"
+                      startIcon={<StopIcon />}
+                    >
+                      End Auction
                     </Button>
-                  </Typography>
+                  </Box>
                 )}
               </Box>
             </Box>

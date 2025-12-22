@@ -13,7 +13,12 @@ import {
   Avatar,
   IconButton,
   Tooltip,
+  Chip,
 } from '@mui/material';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import CollectionsIcon from '@mui/icons-material/Collections';
+import GavelIcon from '@mui/icons-material/Gavel';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useEth } from '../contexts/EthContext';
 import { useSnackbar } from 'notistack';
@@ -173,14 +178,18 @@ function Account({ auctions }) {
       <Grid spacing={0} container>
         <Grid item xs={12} md={6}>
           <Box p={4}>
-            <Typography
-              sx={{
-                pb: 2,
-              }}
-              variant="h4"
-            >
-              Ví của tôi
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 2 }}>
+              <AccountBalanceWalletIcon color="primary" sx={{ fontSize: 32 }} />
+              <Typography
+                sx={{
+                  fontWeight: 'bold',
+                  color: 'primary.main',
+                }}
+                variant="h4"
+              >
+                My Wallet
+              </Typography>
+            </Box>
             <Box
               sx={{
                 mb: 3,
@@ -215,14 +224,17 @@ function Account({ auctions }) {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography
-              sx={{
-                pb: 3,
-              }}
-              variant="h4"
-            >
-              Your Latest Auction
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 3 }}>
+              <GavelIcon color="primary" sx={{ fontSize: 28 }} />
+              <Typography
+                sx={{
+                  fontWeight: 'bold',
+                }}
+                variant="h4"
+              >
+                Your Latest Auction
+              </Typography>
+            </Box>
             {latestAuction ? (
               <Box>
                 <Typography variant="h1" gutterBottom>
@@ -358,9 +370,12 @@ function Account({ auctions }) {
           >
             <MintNftForm onMinted={() => loadOwnedNfts()} />
 
-            <Typography variant="h4" sx={{ mb: 1 }}>
-              My Collection
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <CollectionsIcon color="primary" sx={{ fontSize: 28 }} />
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                My Collection
+              </Typography>
+            </Box>
             {ownedNfts.length === 0 ? (
               <Typography variant="body1">
                 You do not own any NFTs from this collection yet.
@@ -435,8 +450,9 @@ function Account({ auctions }) {
                                   onClick={() =>
                                     handleCopy('Token ID', nft.tokenId)
                                   }
+                                  color="primary"
                                 >
-                                  <span>📋</span>
+                                  <ContentCopyIcon fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                               {addr && (
@@ -446,8 +462,9 @@ function Account({ auctions }) {
                                     onClick={() =>
                                       handleCopy('NFT address', addr)
                                     }
+                                    color="primary"
                                   >
-                                    <span>🔗</span>
+                                    <ContentCopyIcon fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
                               )}
@@ -463,9 +480,12 @@ function Account({ auctions }) {
 
             <Divider sx={{ my: 2 }} />
 
-            <Typography variant="h4" sx={{ mb: 1 }}>
-              My Auctions
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <GavelIcon color="primary" sx={{ fontSize: 28 }} />
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                My Auctions
+              </Typography>
+            </Box>
             <Tabs
               value={myAuctionTab}
               onChange={(_, v) => setMyAuctionTab(v)}
@@ -489,12 +509,30 @@ function Account({ auctions }) {
                         key={a.auctionContract._address}
                         component="a"
                         href={`#${a.auctionContract._address}`}
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                            borderRadius: 1,
+                          },
+                        }}
                       >
                         <ListItemText
-                          primary={a.pinataMetadata.name}
-                          secondary={`Highest: ${displayInGwei(
-                            a.highestBid
-                          )} gwei`}
+                          primary={
+                            <Typography variant="subtitle1" fontWeight="medium">
+                              {a.pinataMetadata?.name || 'Unnamed NFT'}
+                            </Typography>
+                          }
+                          secondary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                              <Chip
+                                label={`Highest: ${displayInGwei(a.highestBid)} gwei`}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                            </Box>
+                          }
                         />
                       </ListItem>
                     ))}
@@ -513,12 +551,30 @@ function Account({ auctions }) {
                         key={a.auctionContract._address}
                         component="a"
                         href={`#${a.auctionContract._address}`}
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': {
+                            bgcolor: 'action.hover',
+                            borderRadius: 1,
+                          },
+                        }}
                       >
                         <ListItemText
-                          primary={a.pinataMetadata.name}
-                          secondary={`My bid: ${displayInGwei(
-                            a.userBidAmount
-                          )} gwei`}
+                          primary={
+                            <Typography variant="subtitle1" fontWeight="medium">
+                              {a.pinataMetadata?.name || 'Unnamed NFT'}
+                            </Typography>
+                          }
+                          secondary={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                              <Chip
+                                label={`My bid: ${displayInGwei(a.userBidAmount)} gwei`}
+                                size="small"
+                                color="secondary"
+                                variant="outlined"
+                              />
+                            </Box>
+                          }
                         />
                       </ListItem>
                     ))}

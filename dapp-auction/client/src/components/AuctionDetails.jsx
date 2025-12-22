@@ -8,7 +8,11 @@ import {
   Stack,
   Divider,
   Tooltip,
+  Chip,
 } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useEth } from '../contexts/EthContext';
 import {
   displayInGwei,
@@ -45,6 +49,8 @@ const ListItemAvatarWrapper = styled(ListItemAvatar)(
 
 const ListItemWrapper = styled(ListItem)(
   ({ theme }) => `
+  padding: ${theme.spacing(3)};
+  margin-bottom: ${theme.spacing(2)};
   transition: ${theme.transitions.create(['background-color', 'transform'], {
     duration: theme.transitions.duration.standard,
   })};
@@ -71,24 +77,30 @@ function AuctionDetails({ auction, refetchData }) {
   } = useEth();
   return (
     <ListItemWrapper id={auction.auctionContract._address}>
-      <ListItemAvatarWrapper>
+      <ListItemAvatarWrapper sx={{ mr: 3 }}>
         {accounts[0] === auction.seller && (
-          <Typography sx={{ fontWeight: 'bold' }}>✨My Auction✨</Typography>
+          <Chip
+            label="My Auction"
+            color="primary"
+            size="small"
+            sx={{ mb: 1, fontWeight: 'bold' }}
+            icon={<AccountCircleIcon />}
+          />
         )}
         {imgSrc && (
           <img alt="img" src={imgSrc} width={450} height={450} />
         )}
       </ListItemAvatarWrapper>
-      <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
-        <Typography
-          sx={{ fontWeight: 'bold' }}
-        >{`Title: ${meta.name ?? 'Unnamed NFT'}`}</Typography>
-        <Typography
-          sx={{ fontWeight: 'bold' }}
-        >{`Description: ${meta.description ?? 'No description'}`}</Typography>
+        <Box display="flex" flexDirection="column" sx={{ width: '100%', pl: 2 }}>
+        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+          {meta.name ?? 'Unnamed NFT'}
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          {meta.description ?? 'No description'}
+        </Typography>
         <Tooltip title={auction.seller} arrow>
-          <Typography sx={{ fontWeight: 'bold' }}>
-            {`Owned by: ${auction.seller.slice(0, 8)}...`}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Owner: {auction.seller.slice(0, 8)}...{auction.seller.slice(-6)}
           </Typography>
         </Tooltip>
         <Divider
@@ -99,6 +111,7 @@ function AuctionDetails({ auction, refetchData }) {
           display="flex"
           sx={{
             flexDirection: 'column',
+            gap: 1.5,
           }}
         >
           <Stack
@@ -106,15 +119,22 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
-            <Typography>Highest Bid</Typography>
-            {displayInGwei(auction.highestBid)} gwei
+            <Typography fontWeight="medium">Highest Bid</Typography>
+            <Chip
+              label={`${displayInGwei(auction.highestBid)} gwei`}
+              color="primary"
+              variant="outlined"
+              size="small"
+            />
           </Stack>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
             <Typography>Auction Address</Typography>
             <Tooltip title={auction.auctionContract._address} arrow>
@@ -128,6 +148,7 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
             <Typography>NFT Address</Typography>
             <Tooltip title={auction.nft} arrow>
@@ -139,6 +160,7 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
             <Typography>Token ID</Typography>
             {auction.nftId}
@@ -148,6 +170,7 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
             <Typography>Token Standard</Typography>
             ERC-721
@@ -157,6 +180,7 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
             <Typography>Minimal increment</Typography>
             {displayInGwei(auction.increment)} gwei
@@ -166,6 +190,7 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
             <Typography>Start At</Typography>
             {displayTimestampInHumanReadable(auction.startAt)}
@@ -175,6 +200,7 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
             <Typography>Duration</Typography>
             {displayInHours(auction.duration)} hours
@@ -184,24 +210,33 @@ function AuctionDetails({ auction, refetchData }) {
             justifyContent="space-between"
             alignItems="center"
             spacing={2}
+            sx={{ py: 0.5 }}
           >
-            <Typography>Auction Started</Typography>
-            {auction.started ? 'Yes' : 'No'}
+            <Typography>Status</Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Chip
+                label={auction.started ? 'Started' : 'Not Started'}
+                color={auction.started ? 'success' : 'default'}
+                size="small"
+                icon={auction.started ? <CheckCircleIcon /> : <CancelIcon />}
+              />
+              {auction.ended && (
+                <Chip
+                  label="Ended"
+                  color="error"
+                  size="small"
+                  icon={<CancelIcon />}
+                />
+              )}
+            </Box>
           </Stack>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            spacing={2}
-          >
-            <Typography>Auction Ended</Typography>
-            {auction.ended ? 'Yes' : 'No'}
-          </Stack>
-          <NFTListingBidModal
-            pinataMetadata={pinataMetadata}
-            auctionData={auction}
-            refetchData={refetchData}
-          />
+          <Box sx={{ mt: 2 }}>
+            <NFTListingBidModal
+              pinataMetadata={pinataMetadata}
+              auctionData={auction}
+              refetchData={refetchData}
+            />
+          </Box>
         </Box>
       </Box>
     </ListItemWrapper>

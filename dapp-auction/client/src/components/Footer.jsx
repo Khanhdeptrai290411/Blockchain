@@ -9,8 +9,8 @@ function Copyright() {
     <Typography variant="body1" color="text.secondary">
       {'Copyright © '}
       {new Date().getFullYear()}{' '}
-      <Link color="inherit" href="https://github.com/tlylt/dapp-auction">
-        Team NFT, CZ4153-BLOCKCHAIN TECHNOLOGY NTU
+      <Link color="inherit" href="https://github.com/Khanhdeptrai290411/Blockchain.git">
+        Nhóm 6, Võ Thị Hồng Anh, Lê Quang Phát, Nguyễn Đình Quốc Khánh, Trần Thảo Nguyên
       </Link>
     </Typography>
   );
@@ -35,7 +35,7 @@ export default function Footer() {
       >
         <Container maxWidth="sm">
           <Typography variant="h5">
-            Decentralized Auction Application for NFTs
+            Ứng dụng đấu giá phi tập trung cho NFT
           </Typography>
           <Copyright />
         </Container>

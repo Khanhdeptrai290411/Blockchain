@@ -1,4 +1,5 @@
 import { Card, Box, Grid, Typography, List, Button } from '@mui/material';
+import GavelIcon from '@mui/icons-material/Gavel';
 import AuctionDetails from './AuctionDetails';
 function Listing({ auctions, refetchData }) {
   if (auctions === undefined) {
@@ -17,25 +18,38 @@ function Listing({ auctions, refetchData }) {
   }
   return (
     <Card>
-      <Typography
+      <Box
         display="flex"
         justifyContent="center"
         alignItems="center"
         mt={4}
-        variant="h4"
+        mb={2}
+        gap={2}
       >
-        All Auctions{' '}
+        <GavelIcon color="primary" sx={{ fontSize: 32 }} />
+        <Typography variant="h4" fontWeight="bold">
+          All Auctions
+        </Typography>
         <Button
           onClick={() => {
             refetchData();
           }}
-          variant="text"
-          color="secondary"
-          size="small"
+          variant="outlined"
+          color="primary"
+          sx={{
+            ml: 1,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: 3,
+              bgcolor: 'primary.main',
+              color: 'white',
+            },
+          }}
         >
           Refresh
         </Button>
-      </Typography>
+      </Box>
       <Grid spacing={0} container>
         <Box py={4} pr={4} flex={1}>
           <Grid
@@ -49,6 +63,9 @@ function Listing({ auctions, refetchData }) {
             <List
               sx={{
                 width: '80%',
+                '& .MuiListItem-root': {
+                  marginBottom: 2,
+                },
               }}
             >
               {auctions.length === 0 ? (
