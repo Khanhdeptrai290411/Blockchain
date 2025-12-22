@@ -34,9 +34,19 @@ const NftApprovalCard = () => {
   };
 
   const handleApproval = async () => {
+    const auctionAddress = vars.auctionAddress.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(auctionAddress)) {
+      enqueueSnackbar('Invalid auction address', { variant: 'error' });
+      return;
+    }
+    const tid = parseInt(vars.nftId);
+    if (Number.isNaN(tid) || tid < 0) {
+      enqueueSnackbar('Invalid token id', { variant: 'error' });
+      return;
+    }
+
     let nftAddress = nftJson.networks[networkID].address;
     let nftContract = new web3.eth.Contract(nftJson.abi, nftAddress);
-    const tid = parseInt(vars.nftId);
     try {
       await nftContract.methods
         .approve(vars.auctionAddress, tid)

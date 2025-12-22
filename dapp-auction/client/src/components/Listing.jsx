@@ -51,7 +51,7 @@ function Listing({ auctions, refetchData }) {
                 width: '80%',
               }}
             >
-              {auctions === [] ? (
+              {auctions.length === 0 ? (
                 <Typography
                   display="flex"
                   alignItems="center"

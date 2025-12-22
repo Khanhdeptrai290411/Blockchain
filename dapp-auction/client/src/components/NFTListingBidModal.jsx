@@ -60,7 +60,7 @@ const calculateTimeTillExpiry = (auctionData) => {
 function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
   const { enqueueSnackbar } = useSnackbar();
   const {
-    state: { accounts },
+    state: { accounts, web3 },
   } = useEth();
   const [open, setOpen] = useState(false);
   const handleOpen = () => {
@@ -76,6 +76,8 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
   const { timeTillExpiryHours, timeTillExpiryMinutes, timeTillExpirySeconds } =
     calculateTimeTillExpiry(auctionData);
   const [currBidAmount, setCurrBidAmount] = useState(0);
+  const [isApproved, setIsApproved] = useState(false);
+  const [checkingApproval, setCheckingApproval] = useState(false);
 
   useEffect(() => {
     if (accounts[0] === auctionData.seller) {
@@ -94,6 +96,44 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
     auctionData.userBidAmount,
     open,
   ]);
+
+  // Check approval status when modal opens
+  useEffect(() => {
+    const checkApproval = async () => {
+      if (!web3 || !accounts || accounts.length === 0 || !auctionData.auctionContract || auctionData.started) {
+        setIsApproved(true); // Assume approved if auction already started
+        return;
+      }
+      
+      if (accounts[0]?.toLowerCase() !== auctionData.seller?.toLowerCase()) {
+        setIsApproved(true); // Not seller, don't need to check
+        return;
+      }
+
+      try {
+        setCheckingApproval(true);
+        const mintNftJson = require('../contracts/MintNFT.json');
+        const mintNftContract = new web3.eth.Contract(
+          mintNftJson.abi,
+          auctionData.nft
+        );
+        const approvedAddress = await mintNftContract.methods
+          .getApproved(auctionData.nftId)
+          .call();
+        const auctionAddress = auctionData.auctionContract._address.toLowerCase();
+        setIsApproved(approvedAddress.toLowerCase() === auctionAddress);
+      } catch (err) {
+        console.warn('Failed to check approval:', err);
+        setIsApproved(false);
+      } finally {
+        setCheckingApproval(false);
+      }
+    };
+
+    if (open) {
+      checkApproval();
+    }
+  }, [open, web3, accounts, auctionData, auctionData.auctionContract]);
 
   // As soon as auctionContract is ready, we'll register our Solidity event listener on Auction.bid()
   useEffect(() => {
@@ -151,18 +191,95 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
     }
   };
 
+  const handleApproveNFT = async () => {
+    if (!web3 || !accounts || accounts.length === 0) {
+      enqueueSnackbar('Please connect your wallet', { variant: 'error' });
+      return;
+    }
+
+    try {
+      const mintNftJson = require('../contracts/MintNFT.json');
+      const mintNftContract = new web3.eth.Contract(
+        mintNftJson.abi,
+        auctionData.nft
+      );
+      const auctionAddress = auctionData.auctionContract._address;
+      
+      enqueueSnackbar('Approving NFT...', { variant: 'info' });
+      await mintNftContract.methods
+        .approve(auctionAddress, auctionData.nftId)
+        .send({ from: accounts[0] });
+      
+      setIsApproved(true);
+      enqueueSnackbar('NFT approved successfully! You can now start the auction.', {
+        variant: 'success',
+      });
+    } catch (err) {
+      const errorMsg = getRPCErrorMessage(err);
+      enqueueSnackbar(`Approval failed: ${errorMsg}`, { variant: 'error' });
+    }
+  };
+
   const handleStartAuction = async () => {
     if (auctionData.started) {
       enqueueSnackbar('Auction already started!', { variant: 'error' });
       return;
     }
     const auctionContract = auctionData.auctionContract;
+    const auctionAddress = auctionContract._address;
+    
+    // Check if NFT is approved before attempting to start
+    try {
+      if (!web3) {
+        throw new Error('Web3 not available');
+      }
+      const mintNftJson = require('../contracts/MintNFT.json');
+      const mintNftContract = new web3.eth.Contract(
+        mintNftJson.abi,
+        auctionData.nft
+      );
+      const approvedAddress = await mintNftContract.methods
+        .getApproved(auctionData.nftId)
+        .call();
+      
+      if (approvedAddress.toLowerCase() !== auctionAddress.toLowerCase()) {
+        enqueueSnackbar(
+          `NFT must be approved first! Auction address: ${auctionAddress.slice(0, 8)}...${auctionAddress.slice(-6)}. Copy this address and approve the NFT (Token ID: ${auctionData.nftId}) for this auction.`,
+          { variant: 'warning', autoHideDuration: 8000 }
+        );
+        // Copy auction address to clipboard
+        navigator.clipboard.writeText(auctionAddress).catch(() => {});
+        return;
+      }
+    } catch (checkErr) {
+      console.warn('Could not check approval status:', checkErr);
+      // Continue anyway, let the contract revert if not approved
+    }
+    
     try {
       await auctionContract.methods.start().send({ from: accounts[0] });
       enqueueSnackbar('Auction Successfully Started', { variant: 'success' });
       console.log('auction started :D');
+      refetchData();
     } catch (err) {
-      enqueueSnackbar(getRPCErrorMessage(err), { variant: 'error' });
+      const errorMsg = getRPCErrorMessage(err);
+      // Check if error is about approval/transfer
+      if (errorMsg.toLowerCase().includes('transfer') || 
+          errorMsg.toLowerCase().includes('approve') ||
+          errorMsg.toLowerCase().includes('erc721') ||
+          errorMsg.toLowerCase().includes('not approved') ||
+          err.code === -32603) {
+        enqueueSnackbar(
+          `❌ Failed to start: NFT (Token ID: ${auctionData.nftId}) must be approved for auction ${auctionAddress.slice(0, 8)}...${auctionAddress.slice(-6)} first!`,
+          { variant: 'error', autoHideDuration: 8000 }
+        );
+        // Copy auction address to clipboard for easy approval
+        navigator.clipboard.writeText(auctionAddress).then(() => {
+          enqueueSnackbar('Auction address copied to clipboard', { variant: 'info' });
+        }).catch(() => {});
+      } else {
+        enqueueSnackbar(errorMsg || 'Failed to start auction', { variant: 'error' });
+      }
     }
   };
 
@@ -237,7 +354,7 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
             }}
           >
             <Typography id="modal-modal-title" variant="h6" component="h2">
-              Title: {pinataMetadata.name}
+              Title: {pinataMetadata?.name ?? 'Unnamed NFT'}
             </Typography>
             <Typography id="modal-modal-description" sx={{ mt: 2 }}>
               Highest Bid: {displayInGwei(highestBid)} gwei
@@ -276,15 +393,36 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
                 gap="10px"
               >
                 {role === 'seller' && (
-                  <Typography>
-                    As the seller, you can{' '}
-                    <Button variant="contained" onClick={handleStartAuction}>
-                      Start
-                    </Button>{' '}
-                    <Button variant="contained" onClick={handleEnd}>
-                      End
-                    </Button>
-                  </Typography>
+                  <>
+                    {!auctionData.started && !isApproved && (
+                      <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
+                        <Typography variant="body2" color="warning.main">
+                          ⚠️ NFT must be approved before starting auction
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          onClick={handleApproveNFT}
+                          disabled={checkingApproval}
+                        >
+                          {checkingApproval ? 'Checking...' : 'Approve NFT'}
+                        </Button>
+                      </Box>
+                    )}
+                    <Typography>
+                      As the seller, you can{' '}
+                      <Button
+                        variant="contained"
+                        onClick={handleStartAuction}
+                        disabled={!auctionData.started && !isApproved}
+                      >
+                        Start
+                      </Button>{' '}
+                      <Button variant="contained" onClick={handleEnd}>
+                        End
+                      </Button>
+                    </Typography>
+                  </>
                 )}
                 {(role === 'notBidder' || role === 'bidder') && (
                   <Box display="flex">

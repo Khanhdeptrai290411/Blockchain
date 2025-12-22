@@ -63,24 +63,36 @@ export default function Creation({ refetchData }) {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (vars.nftAddress === '') {
+    const nftAddress = vars.nftAddress.trim();
+
+    // Basic validations to tránh revert sớm
+    if (nftAddress === '') {
       enqueueSnackbar('NFT Address is required', { variant: 'error' });
       return;
     }
-    if (vars.startingBid <= 0) {
+    if (!/^0x[a-fA-F0-9]{40}$/.test(nftAddress)) {
+      enqueueSnackbar('Invalid NFT address format', { variant: 'error' });
+      return;
+    }
+
+    const startingBidNum = Number(vars.startingBid);
+    const incrementNum = Number(vars.increment);
+    const durationNum = Number(vars.duration);
+
+    if (!Number.isFinite(startingBidNum) || startingBidNum <= 0) {
       enqueueSnackbar('Starting Bid must be greater than 0', {
         variant: 'error',
       });
       return;
     }
-    if (vars.duration <= 0) {
+    if (!Number.isFinite(durationNum) || durationNum <= 0) {
       enqueueSnackbar('Duration must be greater or equal to 1 hour', {
         variant: 'error',
       });
       return;
     }
 
-    if (vars.increment <= 0) {
+    if (!Number.isFinite(incrementNum) || incrementNum <= 0) {
       enqueueSnackbar('Increment must be greater than 0', { variant: 'error' });
       return;
     }
@@ -91,12 +103,19 @@ export default function Creation({ refetchData }) {
       auctionAddress
     );
     try {
+      // dùng toWei để tránh overflow khi parse số lớn
+      const startingBidWei = web3.utils.toWei(
+        startingBidNum.toString(),
+        'gwei'
+      );
+      const incrementWei = web3.utils.toWei(incrementNum.toString(), 'gwei');
+
       let val = await auctionFactoryContract.methods
         .createNewAuction(
-          vars.nftAddress,
+          nftAddress,
           vars.nftId,
-          vars.startingBid * Math.pow(10, 9),
-          vars.increment * Math.pow(10, 9), //convert from Gwei in form input to wei in Auction constructor
+          startingBidWei,
+          incrementWei, //convert from Gwei in form input to wei in Auction constructor
           vars.duration * 60 * 60 // convert from hours in form input to seconds in Auction constructor
         )
         .send({ from: accounts[0] });

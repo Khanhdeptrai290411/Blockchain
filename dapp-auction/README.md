@@ -12,9 +12,10 @@ ganache
 # keep track of private keys to import account for testing
 # 0x156def9ee6e65599671d0829e5994b26f786cbdf142450a2cb0a40a78e6fa250
 # 0x64af5f4d553f98aeb2d992e2a6bed318da9fdf65b94ab07cc4fbe9fabb5ed6f4
+ganache
 cd truffle
-# compile and migrate contracts
-truffle migrate --network development
+truffle migrate --reset --network development
+truffle exec scripts/seed.js --network development
 
 cd client
 $env:NODE_OPTIONS="--openssl-legacy-provider"

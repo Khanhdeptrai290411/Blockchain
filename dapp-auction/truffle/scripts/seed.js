@@ -37,7 +37,22 @@ module.exports = async function (callback) {
       const nft = allDemoNFTs[i];
       const res = await mintNFT.mint(nft.ipfsHash, { from: user.account });
       const tokenId = res.receipt.logs[0].args.tokenId.words[0];
+
+      let name = `Token #${tokenId}`;
+      let description = "";
+      try {
+        // ipfsHash ở đây đã là HTTP gateway URL tới metadata.json
+        const metaRes = await fetch(nft.ipfsHash);
+        const metaJson = await metaRes.json();
+        if (metaJson.name) name = metaJson.name;
+        if (metaJson.description) description = metaJson.description;
+      } catch (e) {
+        console.log("Failed to fetch metadata for demo NFT", nft.ipfsHash, e);
+      }
+
       demoUsers[i].tokenId = tokenId;
+      demoUsers[i].name = name;
+      demoUsers[i].description = description;
     }
 
     // Construct auction
@@ -89,7 +104,11 @@ module.exports = async function (callback) {
 
     // Print out the demo users
     console.log("These are the demo users:\n");
-    console.log(demoUsers);
+    demoUsers.forEach((u, idx) => {
+      console.log(
+        `#${idx} account=${u.account} tokenId=${u.tokenId} name="${u.name}" auctionAddress=${u.auctionAddress}`
+      );
+    });
   } catch (error) {
     console.log(error);
   }

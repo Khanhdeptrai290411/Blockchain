@@ -14,6 +14,7 @@ import {
   displayInGwei,
   displayInHours,
   displayTimestampInHumanReadable,
+  resolveIpfsUri,
 } from '../utils';
 import NFTListingBidModal from './NFTListingBidModal';
 
@@ -56,6 +57,15 @@ const ListItemWrapper = styled(ListItem)(
 
 function AuctionDetails({ auction, refetchData }) {
   const { pinataMetadata } = auction;
+  const meta = pinataMetadata || {};
+  const rawImg =
+    meta.image ||
+    meta.image_url ||
+    meta.imageUrl ||
+    meta.animation_url ||
+    meta.thumbnail ||
+    null;
+  const imgSrc = rawImg ? resolveIpfsUri(rawImg) : null;
   const {
     state: { accounts },
   } = useEth();
@@ -65,15 +75,17 @@ function AuctionDetails({ auction, refetchData }) {
         {accounts[0] === auction.seller && (
           <Typography sx={{ fontWeight: 'bold' }}>✨My Auction✨</Typography>
         )}
-        <img alt="img" src={pinataMetadata.image} width={450} height={450} />
+        {imgSrc && (
+          <img alt="img" src={imgSrc} width={450} height={450} />
+        )}
       </ListItemAvatarWrapper>
       <Box display="flex" flexDirection="column" sx={{ width: '100%' }}>
         <Typography
           sx={{ fontWeight: 'bold' }}
-        >{`Title: ${pinataMetadata.name}`}</Typography>
+        >{`Title: ${meta.name ?? 'Unnamed NFT'}`}</Typography>
         <Typography
           sx={{ fontWeight: 'bold' }}
-        >{`Description: ${pinataMetadata.description}`}</Typography>
+        >{`Description: ${meta.description ?? 'No description'}`}</Typography>
         <Tooltip title={auction.seller} arrow>
           <Typography sx={{ fontWeight: 'bold' }}>
             {`Owned by: ${auction.seller.slice(0, 8)}...`}
