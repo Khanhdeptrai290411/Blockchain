@@ -41,9 +41,11 @@ function AuctionApp() {
 
   const [auctionFactoryContract, setAuctionFactoryContract] = useState(null);
   const [auctions, setAuctions] = useState([]);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
   const {
     state: { web3, networkID, accounts },
   } = useEth();
+  
   useEffect(() => {
     if (web3 && networkID) {
       setAuctionFactoryContract(getAuctionFactoryContract(web3, networkID));
@@ -59,10 +61,21 @@ function AuctionApp() {
       );
       setAuctions(auctions);
     }
-    if (auctionFactoryContract) {
+    if (auctionFactoryContract && web3) {
       fetchData();
     }
-  }, [auctionFactoryContract, web3, accounts]);
+  }, [auctionFactoryContract, web3, accounts, reloadTrigger]);
+
+  // Reload when account changes (MetaMask connection)
+  const currentAccount = accounts && accounts.length > 0 ? accounts[0] : null;
+  useEffect(() => {
+    if (currentAccount && auctionFactoryContract) {
+      // Small delay to ensure web3 is ready
+      setTimeout(() => {
+        setReloadTrigger(prev => prev + 1);
+      }, 100);
+    }
+  }, [currentAccount, auctionFactoryContract]); // Watch first account change
   async function refetchData() {
     const auctions = await getAuctions(web3, auctionFactoryContract, accounts);
     setAuctions(auctions);

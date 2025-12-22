@@ -7,7 +7,7 @@ import { useSnackbar } from 'notistack';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { useEth } from '../contexts/EthContext';
-import { displayInGwei } from '../utils';
+import { displayInGwei, displayInEth } from '../utils';
 import CountdownTimer from './CountdownTimer';
 import { Chip, Divider as MuiDivider } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -158,7 +158,9 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
   }, [auctionData.auctionContract, setHighestBid]);
 
   const handleBidAmountChange = (event) => {
-    setCurrBidAmount(event.target.value * Math.pow(10, 9));
+    // Convert from ETH to wei (1 ETH = 10^18 wei)
+    const ethValue = parseFloat(event.target.value) || 0;
+    setCurrBidAmount(ethValue * Math.pow(10, 18));
   };
 
   const submitBid = async () => {
@@ -388,7 +390,7 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
                 Highest Bid
               </Typography>
               <Chip
-                label={`${displayInGwei(highestBid)} gwei`}
+                label={`${displayInEth(highestBid)} ETH`}
                 color="primary"
                 size="medium"
                 sx={{ fontWeight: 'bold' }}
@@ -490,13 +492,19 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
                   <Box display="flex" gap={1} sx={{ width: '100%', maxWidth: 400 }}>
                     <TextField
                       id="modal-bid"
-                      label="Bid Amount (GWei)"
+                      label="Bid Amount (ETH)"
                       type="number"
                       variant="outlined"
                       required
                       min={0}
+                      step="0.0001"
                       fullWidth
                       onChange={handleBidAmountChange}
+                      helperText={
+                        highestBid && auctionData.increment
+                          ? `Minimum: ${displayInEth(Number(highestBid) + Number(auctionData.increment))} ETH`
+                          : 'Enter your bid amount in ETH'
+                      }
                     />
                     <Button 
                       variant="contained" 

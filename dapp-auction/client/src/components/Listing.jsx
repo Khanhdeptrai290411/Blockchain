@@ -17,7 +17,15 @@ function Listing({ auctions, refetchData }) {
     );
   }
   return (
-    <Card>
+    <Card
+      sx={{
+        background: 'linear-gradient(145deg, rgba(11, 14, 17, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%)',
+        border: 'none',
+        borderRadius: 3,
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
+      }}
+    >
       <Box
         display="flex"
         justifyContent="center"
@@ -26,8 +34,17 @@ function Listing({ auctions, refetchData }) {
         mb={2}
         gap={2}
       >
-        <GavelIcon color="primary" sx={{ fontSize: 32 }} />
-        <Typography variant="h4" fontWeight="bold">
+        <GavelIcon sx={{ fontSize: 32, color: '#33C2FF' }} />
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 'bold',
+            color: 'white',
+            background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
           All Auctions
         </Typography>
         <Button
@@ -35,14 +52,15 @@ function Listing({ auctions, refetchData }) {
             refetchData();
           }}
           variant="outlined"
-          color="primary"
           sx={{
             ml: 1,
+            borderColor: '#33C2FF',
+            color: '#33C2FF',
             transition: 'all 0.3s ease',
             '&:hover': {
               transform: 'translateY(-2px)',
-              boxShadow: 3,
-              bgcolor: 'primary.main',
+              boxShadow: '0 8px 32px rgba(51, 194, 255, 0.3)',
+              bgcolor: '#33C2FF',
               color: 'white',
             },
           }}
@@ -73,6 +91,7 @@ function Listing({ auctions, refetchData }) {
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
+                  sx={{ color: 'rgba(255, 255, 255, 0.7)', py: 4 }}
                 >
                   No Auctions available at the moment...
                 </Typography>

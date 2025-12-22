@@ -104,19 +104,19 @@ export default function Creation({ refetchData }) {
       auctionAddress
     );
     try {
-      // dùng toWei để tránh overflow khi parse số lớn
+      // Convert from ETH to wei (1 ETH = 10^18 wei)
       const startingBidWei = web3.utils.toWei(
         startingBidNum.toString(),
-        'gwei'
+        'ether'
       );
-      const incrementWei = web3.utils.toWei(incrementNum.toString(), 'gwei');
+      const incrementWei = web3.utils.toWei(incrementNum.toString(), 'ether');
 
       let val = await auctionFactoryContract.methods
         .createNewAuction(
           nftAddress,
           vars.nftId,
           startingBidWei,
-          incrementWei, //convert from Gwei in form input to wei in Auction constructor
+          incrementWei, //convert from ETH in form input to wei in Auction constructor
           vars.duration * 60 * 60 // convert from hours in form input to seconds in Auction constructor
         )
         .send({ from: accounts[0] });
@@ -221,7 +221,7 @@ export default function Creation({ refetchData }) {
               fullWidth
               min={0}
               name="startingBid"
-              label="Starting Bid (gWei)"
+              label="Starting Bid (ETH)"
               id="startingBid"
               type="number"
               onChange={(event) => {
@@ -237,7 +237,7 @@ export default function Creation({ refetchData }) {
               required
               fullWidth
               name="minIncrement"
-              label="Minimum Increment (gWei)"
+              label="Minimum Increment (ETH)"
               id="minIncrement"
               type="number"
               onChange={(event) => {

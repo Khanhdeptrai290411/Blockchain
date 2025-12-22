@@ -154,6 +154,13 @@ export function displayInGwei(wei) {
   return wei / 1000000000;
 }
 
+export function displayInEth(wei) {
+  // 1 ETH = 10^18 wei
+  const eth = wei / 1000000000000000000;
+  // Format to 4 decimal places, remove trailing zeros
+  return parseFloat(eth.toFixed(4));
+}
+
 export function displayInHours(seconds) {
   // rounded to 2 decimal places
   return Math.round((seconds / 60 / 60) * 100) / 100;

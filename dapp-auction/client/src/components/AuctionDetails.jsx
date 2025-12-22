@@ -16,6 +16,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useEth } from '../contexts/EthContext';
 import {
   displayInGwei,
+  displayInEth,
   displayInHours,
   displayTimestampInHumanReadable,
   resolveIpfsUri,
@@ -51,12 +52,17 @@ const ListItemWrapper = styled(ListItem)(
   ({ theme }) => `
   padding: ${theme.spacing(3)};
   margin-bottom: ${theme.spacing(2)};
-  transition: ${theme.transitions.create(['background-color', 'transform'], {
+  background: linear-gradient(145deg, rgba(11, 14, 17, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%);
+  border: none;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  transition: ${theme.transitions.create(['background-color', 'transform', 'box-shadow'], {
     duration: theme.transitions.duration.standard,
   })};
   &:hover {
-    background-color: rgba(34, 51, 84, 0.07);
-    transform: scale(1.01);
+    background: linear-gradient(145deg, rgba(26, 31, 46, 0.95) 0%, rgba(11, 14, 17, 0.95) 100%);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(51, 194, 255, 0.2);
   }
 `
 );
@@ -92,20 +98,30 @@ function AuctionDetails({ auction, refetchData }) {
         )}
       </ListItemAvatarWrapper>
         <Box display="flex" flexDirection="column" sx={{ width: '100%', pl: 2 }}>
-        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 'bold',
+            mb: 1,
+            color: 'white',
+            background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
           {meta.name ?? 'Unnamed NFT'}
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.7)' }}>
           {meta.description ?? 'No description'}
         </Typography>
         <Tooltip title={auction.seller} arrow>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.6)' }}>
             Owner: {auction.seller.slice(0, 8)}...{auction.seller.slice(-6)}
           </Typography>
         </Tooltip>
         <Divider
           variant="middle"
-          sx={{ marginTop: '10px', marginBottom: '10px' }}
+          sx={{ marginTop: '10px', marginBottom: '10px', borderColor: 'rgba(51, 194, 255, 0.2)' }}
         />
         <Box
           display="flex"
@@ -121,10 +137,17 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography fontWeight="medium">Highest Bid</Typography>
+            <Typography fontWeight="medium" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Highest Bid</Typography>
             <Chip
-              label={`${displayInGwei(auction.highestBid)} gwei`}
-              color="primary"
+              label={`${displayInEth(auction.highestBid)} ETH`}
+              sx={{
+                borderColor: '#33C2FF',
+                color: '#33C2FF',
+                fontWeight: 'bold',
+                '& .MuiChip-label': {
+                  color: '#33C2FF',
+                },
+              }}
               variant="outlined"
               size="small"
             />
@@ -136,9 +159,9 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>Auction Address</Typography>
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Auction Address</Typography>
             <Tooltip title={auction.auctionContract._address} arrow>
-              <Typography>
+              <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }}>
                 {auction.auctionContract._address.slice(0, 8) + '...'}
               </Typography>
             </Tooltip>
@@ -150,9 +173,9 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>NFT Address</Typography>
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>NFT Address</Typography>
             <Tooltip title={auction.nft} arrow>
-              <Typography>{auction.nft.slice(0, 8) + '...'}</Typography>
+              <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '0.9rem' }}>{auction.nft.slice(0, 8) + '...'}</Typography>
             </Tooltip>
           </Stack>
           <Stack
@@ -162,8 +185,8 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>Token ID</Typography>
-            {auction.nftId}
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Token ID</Typography>
+            <Typography sx={{ color: 'white', fontWeight: 'bold' }}>{auction.nftId}</Typography>
           </Stack>
           <Stack
             direction="row"
@@ -172,8 +195,8 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>Token Standard</Typography>
-            ERC-721
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Token Standard</Typography>
+            <Typography sx={{ color: 'white', fontWeight: 'bold' }}>ERC-721</Typography>
           </Stack>
           <Stack
             direction="row"
@@ -182,8 +205,8 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>Minimal increment</Typography>
-            {displayInGwei(auction.increment)} gwei
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Minimal increment</Typography>
+            <Typography sx={{ color: '#33C2FF', fontWeight: 'bold' }}>{displayInEth(auction.increment)} ETH</Typography>
           </Stack>
           <Stack
             direction="row"
@@ -192,8 +215,8 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>Start At</Typography>
-            {displayTimestampInHumanReadable(auction.startAt)}
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Start At</Typography>
+            <Typography sx={{ color: 'white', fontWeight: 'bold' }}>{displayTimestampInHumanReadable(auction.startAt)}</Typography>
           </Stack>
           <Stack
             direction="row"
@@ -202,8 +225,8 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>Duration</Typography>
-            {displayInHours(auction.duration)} hours
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Duration</Typography>
+            <Typography sx={{ color: 'white', fontWeight: 'bold' }}>{displayInHours(auction.duration)} hours</Typography>
           </Stack>
           <Stack
             direction="row"
@@ -212,7 +235,7 @@ function AuctionDetails({ auction, refetchData }) {
             spacing={2}
             sx={{ py: 0.5 }}
           >
-            <Typography>Status</Typography>
+            <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Status</Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Chip
                 label={auction.started ? 'Started' : 'Not Started'}

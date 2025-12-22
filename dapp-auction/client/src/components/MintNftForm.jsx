@@ -84,19 +84,32 @@ function MintNftForm({ onMinted }) {
 
   return (
     <Card
-      variant="outlined"
       sx={{
         mb: 2,
+        background: 'linear-gradient(145deg, rgba(11, 14, 17, 0.95) 0%, rgba(26, 31, 46, 0.95) 100%)',
+        border: 'none',
+        borderRadius: 3,
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(10px)',
       }}
     >
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <AddPhotoAlternateIcon color="primary" sx={{ fontSize: 28 }} />
-          <Typography variant="h5" fontWeight="bold">
+          <AddPhotoAlternateIcon sx={{ fontSize: 28, color: '#33C2FF' }} />
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 'bold',
+              color: 'white',
+              background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
             Mint NFT
           </Typography>
         </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" sx={{ mb: 2, color: 'rgba(255, 255, 255, 0.7)' }}>
           Enter metadata URL (IPFS / HTTP) to mint NFT using your connected MetaMask wallet.
         </Typography>
         <form onSubmit={handleMint}>
@@ -107,12 +120,43 @@ function MintNftForm({ onMinted }) {
             placeholder="https://gateway.pinata.cloud/ipfs/..."
             value={metadataUri}
             onChange={(e) => setMetadataUri(e.target.value)}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                color: 'white',
+                '& fieldset': {
+                  borderColor: 'rgba(51, 194, 255, 0.3)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(51, 194, 255, 0.5)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#33C2FF',
+                },
+              },
+              '& .MuiInputLabel-root': {
+                color: 'rgba(255, 255, 255, 0.7)',
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#33C2FF',
+              },
+            }}
           />
           <Button
             type="submit"
             variant="contained"
             disabled={loading}
-            sx={{ mt: 1 }}
+            sx={{
+              mt: 2,
+              background: 'linear-gradient(135deg, #33C2FF 0%, #123597 100%)',
+              color: 'white',
+              fontWeight: 'bold',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #123597 0%, #33C2FF 100%)',
+                boxShadow: '0 8px 32px rgba(51, 194, 255, 0.4)',
+                transform: 'translateY(-2px)',
+              },
+              transition: 'all 0.3s ease',
+            }}
           >
             {loading ? 'Minting...' : 'Mint'}
           </Button>
