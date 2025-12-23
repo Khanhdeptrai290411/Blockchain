@@ -1,4 +1,4 @@
-import { Box, Card, Container, styled, Button, useTheme, alpha } from '@mui/material';
+import { Box, Card, Container, styled, Button, useTheme, alpha,Typography } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import ConnectWallet from './ConnectWallet';
 import HomeIcon from '@mui/icons-material/Home';
@@ -25,7 +25,7 @@ function RootHeader() {
   const location = useLocation();
 
   const navItems = [
-    { path: '/home', label: 'Create NFT', icon: <HomeIcon /> },
+    { path: '/home', label: 'Home', icon: <HomeIcon /> },
     { path: '/collection', label: 'My Collection', icon: <CollectionsIcon /> },
     { path: '/auctions', label: 'Auctions', icon: <GavelIcon /> },
     { path: '/profile', label: 'Profile', icon: <PersonIcon /> },
@@ -42,31 +42,18 @@ function RootHeader() {
             flex={1}
           >
             <Box display="flex" alignItems="center" gap={3}>
-              <Box
-                component={Link}
-                to="/"
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  textDecoration: 'none',
-                  color: 'inherit',
-                }}
-              >
-                <img src="/favicon.ico" alt="logo" style={{ width: 32, height: 32 }} />
-                <Box
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: '1.5rem',
-                    background: 'linear-gradient(135deg, #5569ff 0%, #000DFF 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    letterSpacing: '-0.5px',
-                  }}
-                >
-                  NFT<span style={{ color: '#5569ff' }}>Auction</span>
-                </Box>
-              </Box>
+              <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #33C2FF 0%, #123597 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                letterSpacing: '-1px',
+              }}
+            >
+              NFT<span style={{ color: '#33C2FF' }}>Auction</span>
+            </Typography>
               <Box display="flex" gap={1}>
                 {navItems.map((item) => (
                   <Button

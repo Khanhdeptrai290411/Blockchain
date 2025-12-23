@@ -32,6 +32,34 @@ export function getAuctionFactoryContract(web3, networkID) {
   return auctionFactoryContract;
 }
 
+// Extend Auction ABI with new helper functions if not present (for fresh builds after contract update)
+function getExtendedAuctionAbi() {
+  const auctionContractJson = require("./contracts/Auction.json");
+  const extra = [
+    {
+      "inputs": [],
+      "name": "cancelBeforeStart",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function",
+    },
+    {
+      "inputs": [],
+      "name": "endEarly",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function",
+    },
+  ];
+  // avoid duplicates
+  const names = new Set(auctionContractJson.abi.map((x) => x.name));
+  const merged = [
+    ...auctionContractJson.abi,
+    ...extra.filter((x) => !names.has(x.name)),
+  ];
+  return merged;
+}
+
 export async function getAuctions(web3, auctionFactoryContract, accounts) {
   if (
     web3 === null ||
@@ -53,7 +81,7 @@ try {
   return [];
 }
 
-  const auctionContractJson = require("./contracts/Auction.json");
+  const auctionAbi = getExtendedAuctionAbi();
   const mintNftContractJson = require("./contracts/MintNFT.json");
   const auctions = [];
   for (let auctionContractAddress of auctionContractAddresses) {
@@ -66,7 +94,7 @@ try {
       }
 
       const auctionContract = new web3.eth.Contract(
-        auctionContractJson.abi,
+        auctionAbi,
         auctionContractAddress
       );
 

@@ -49,6 +49,8 @@ function Profile() {
     }
   }, [currentAccount, auctionFactoryContract]);
 
+  const refetchAuctions = () => setReloadTrigger((p) => p + 1);
+
   const user = {
     avatar: `https://api.dicebear.com/7.x/pixel-art-neutral/svg?seed=${
       accounts === null || accounts.length === 0 ? '1' : accounts[0]
@@ -141,7 +143,7 @@ function Profile() {
                 )}
               </Box>
             </Box>
-            <Account auctions={auctions} />
+            <Account auctions={auctions} refetchAuctions={refetchAuctions} />
           </Box>
         </Fade>
       </Container>

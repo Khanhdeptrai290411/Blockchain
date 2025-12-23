@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useReducer, useRef } from 'react';
 import Web3 from 'web3';
 import EthContext from './EthContext';
 import { actions, initialState, reducer } from './state';
 
 function EthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const balanceFetchRef = useRef(0);
 
   const init = useCallback(async (artifact) => {
   if (!artifact) return;
@@ -59,8 +60,30 @@ function EthProvider({ children }) {
     type: actions.init,
     data: { artifact, web3, accounts, networkID: usedId ?? netId, contract },
   });
+
+  // fetch balance once after init
+  try {
+    const balWei = await web3.eth.getBalance(accounts[0]);
+    const balEth = web3.utils.fromWei(balWei, 'ether');
+    dispatch({ type: actions.setBalance, data: { balanceEth: balEth } });
+  } catch (e) {
+    console.warn('[EthProvider] failed to fetch balance', e);
+  }
 }, []);
 
+  const refreshBalance = useCallback(async () => {
+    if (!state.web3 || !state.accounts || state.accounts.length === 0) return;
+    // avoid overlapping fetches
+    const current = ++balanceFetchRef.current;
+    try {
+      const balWei = await state.web3.eth.getBalance(state.accounts[0]);
+      if (balanceFetchRef.current !== current) return;
+      const balEth = state.web3.utils.fromWei(balWei, 'ether');
+      dispatch({ type: actions.setBalance, data: { balanceEth: balEth } });
+    } catch (e) {
+      console.warn('[EthProvider] refreshBalance failed', e);
+    }
+  }, [state.web3, state.accounts]);
 
   useEffect(() => {
     const tryInit = async () => {
@@ -92,6 +115,7 @@ function EthProvider({ children }) {
       value={{
         state,
         dispatch,
+        refreshBalance,
       }}
     >
       {children}

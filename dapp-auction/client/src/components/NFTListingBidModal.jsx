@@ -388,7 +388,7 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Highest Bid
-              </Typography>
+            </Typography>
               <Chip
                 label={`${displayInEth(highestBid)} ETH`}
                 color="primary"
@@ -399,7 +399,7 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Time Remaining
-              </Typography>
+            </Typography>
               {auctionData.ended ? (
                 <Typography variant="body1" color="error" fontStyle="italic">
                   Auction has already ended
@@ -413,7 +413,7 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
               ) : (
                 <Typography variant="body1" color="text.secondary" fontStyle="italic">
                   Auction has not yet started
-                </Typography>
+            </Typography>
               )}
             </Box>
             <MuiDivider sx={{ my: 2 }} />
@@ -484,7 +484,7 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
                          startIcon={<StopIcon />}
                        >
                          End Auction
-                       </Button>
+                    </Button>
                      </Box>
                   </>
                 )}
@@ -526,7 +526,7 @@ function NFTListingBidModal({ pinataMetadata, auctionData, refetchData }) {
                       size="medium"
                     >
                       Withdraw Bid
-                    </Button>
+                      </Button>
                   </Box>
                 )}
 

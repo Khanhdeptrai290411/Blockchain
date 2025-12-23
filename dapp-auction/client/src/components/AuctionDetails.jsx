@@ -254,11 +254,11 @@ function AuctionDetails({ auction, refetchData }) {
             </Box>
           </Stack>
           <Box sx={{ mt: 2 }}>
-            <NFTListingBidModal
-              pinataMetadata={pinataMetadata}
-              auctionData={auction}
-              refetchData={refetchData}
-            />
+          <NFTListingBidModal
+            pinataMetadata={pinataMetadata}
+            auctionData={auction}
+            refetchData={refetchData}
+          />
           </Box>
         </Box>
       </Box>

@@ -123,7 +123,8 @@ function Collection() {
         (auction) =>
           auction.nft.toLowerCase() === nft.nftAddress.toLowerCase() &&
           auction.nftId === nft.tokenId &&
-          auction.seller.toLowerCase() === accounts?.[0]?.toLowerCase()
+          auction.seller.toLowerCase() === accounts?.[0]?.toLowerCase() &&
+          !auction.ended // ignore cancelled/ended auctions so NFT stays in album
       );
 
       if (isInAuction) {
@@ -388,32 +389,41 @@ function Collection() {
               sx={{
                 mb: 4,
                 borderBottom: '1px solid rgba(51, 194, 255, 0.2)',
+                position: 'relative',
               }}
             >
               <Tabs
                 value={activeTab}
                 onChange={(_, v) => setActiveTab(v)}
                 variant="fullWidth"
+                TabIndicatorProps={{
+                  sx: {
+                    height: '100%',
+                    top: 0,
+                    borderRadius: 1.5,
+                    background: 'linear-gradient(135deg, #33C2FF 0%, #2090ff 100%)',
+                    boxShadow: '0 6px 18px rgba(51, 194, 255, 0.35)',
+                    zIndex: 0,
+                  },
+                }}
                 sx={{
                   '& .MuiTab-root': {
-                    color: 'white',
-                    fontWeight: 'medium',
+                    color: 'white !important',
+                    opacity: 1,
+                    position: 'relative',
+                    zIndex: 1,
+                    background: 'transparent !important',
+                    fontWeight: 'bold',
                     textTransform: 'none',
-                    fontSize: '0.95rem',
+                    fontSize: '1rem',
                     minHeight: 48,
-                    padding: '12px 16px',
+                    padding: '12px 18px',
                     '&:hover': {
-                      color: 'white',
+                      color: 'white !important',
                     },
                     '&.Mui-selected': {
-                      color: '#33C2FF',
-                      fontWeight: 'bold',
+                      color: '#ffffff !important',
                     },
-                  },
-                  '& .MuiTabs-indicator': {
-                    backgroundColor: '#33C2FF',
-                    height: 2,
-                    zIndex: 0,
                   },
                 }}
               >

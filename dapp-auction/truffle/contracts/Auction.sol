@@ -36,6 +36,11 @@ contract Auction is ReentrancyGuard {
     address public highestBidder;
     mapping(address => uint256) public bids;
 
+    modifier onlySeller() {
+        require(msg.sender == seller, "Only seller");
+        _;
+    }
+
     constructor(
         address sender,
         IERC721 _nft,
@@ -57,9 +62,8 @@ contract Auction is ReentrancyGuard {
         duration = _duration;
     }
 
-    function start() external {
+    function start() external onlySeller {
         require(!started, "Auction already started!");
-        require(msg.sender == seller, "You are not the owner of this auction!");
 
         nft.transferFrom(msg.sender, address(this), nftId);
         started = true;
@@ -158,6 +162,31 @@ contract Auction is ReentrancyGuard {
             require(sent, "Could not pay seller!");
         } else {
             // no one bidded
+            nft.transferFrom(address(this), seller, nftId);
+        }
+
+        emit End(highestBidder, highestBid);
+    }
+
+    /// @notice Seller can cancel a draft auction before it starts (NFT not transferred yet)
+    function cancelBeforeStart() external onlySeller {
+        require(!started, "Already started");
+        require(!ended, "Already ended");
+        ended = true;
+        emit End(address(0), 0);
+    }
+
+    /// @notice Seller can end the auction early (before scheduled endAt)
+    function endEarly() external nonReentrant onlySeller {
+        require(started, "Not started");
+        require(!ended, "Already ended");
+        ended = true;
+
+        if (highestBidder != address(0)) {
+            nft.transferFrom(address(this), highestBidder, nftId);
+            (bool sent, ) = seller.call{value: highestBid}("");
+            require(sent, "Could not pay seller!");
+        } else {
             nft.transferFrom(address(this), seller, nftId);
         }
 

@@ -12,7 +12,6 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />}></Route>
-          <Route path="/auction" element={<AuctionApp />}></Route>
           <Route path="/home" element={<Home />}></Route>
           <Route path="/auctions" element={<Auctions />}></Route>
           <Route path="/profile" element={<Profile />}></Route>

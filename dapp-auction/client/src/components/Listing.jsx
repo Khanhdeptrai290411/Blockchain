@@ -36,7 +36,7 @@ function Listing({ auctions, refetchData }) {
       >
         <GavelIcon sx={{ fontSize: 32, color: '#33C2FF' }} />
         <Typography
-          variant="h4"
+        variant="h4"
           sx={{
             fontWeight: 'bold',
             color: 'white',
@@ -44,7 +44,7 @@ function Listing({ auctions, refetchData }) {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}
-        >
+      >
           All Auctions
         </Typography>
         <Button

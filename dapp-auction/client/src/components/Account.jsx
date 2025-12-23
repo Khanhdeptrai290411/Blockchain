@@ -34,19 +34,20 @@ import {
   resolveIpfsUri,
 } from '../utils';
 
-import MintNftForm from './MintNftForm';
+import UploadNftForm from './UploadNftForm';
 import TransferNftModal from './TransferNftModal';
 
-function Account({ auctions }) {
+function Account({ auctions, refetchAuctions }) {
   const navigate = useNavigate();
   const [latestAuction, setLatestAuction] = useState();
-  const [ethBalance, setEthBalance] = useState(null);
   const [ownedNfts, setOwnedNfts] = useState([]);
   const [myAuctionTab, setMyAuctionTab] = useState(0); // 0 = Selling, 1 = Bidding
   const {
-    state: { accounts, web3, networkID },
+    state: { accounts, web3, networkID, balanceEth },
+    refreshBalance,
   } = useEth();
   const { enqueueSnackbar } = useSnackbar();
+  const [actionLoading, setActionLoading] = useState(null); // auction address
 
   const handleAuctionClick = (auctionAddress) => {
     navigate(`/auctions#${auctionAddress}`);
@@ -59,30 +60,48 @@ function Account({ auctions }) {
     }, 100);
   };
 
-  useEffect(() => {
+  const cancelDraftAuction = async (auction) => {
     if (!web3 || !accounts || accounts.length === 0) return;
-
-    let cancelled = false;
-
-    const loadBalance = async () => {
-      try {
-        const balWei = await web3.eth.getBalance(accounts[0]);
-        if (!cancelled) {
-          // web3.utils.fromWei trả về string ETH
-          const balEth = web3.utils.fromWei(balWei, 'ether');
-          setEthBalance(balEth);
-        }
-      } catch (e) {
-        console.error('[Account] Failed to load balance', e);
+    setActionLoading(auction.auctionContract._address);
+    try {
+      await auction.auctionContract.methods
+        .cancelBeforeStart()
+        .send({ from: accounts[0] });
+      enqueueSnackbar('Auction cancelled', { variant: 'success' });
+      if (refetchAuctions) {
+        refetchAuctions();
       }
-    };
+    } catch (e) {
+      console.error('[Account] cancelBeforeStart failed', e);
+      enqueueSnackbar(e?.message || 'Cancel failed', { variant: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
-    loadBalance();
+  const endAuctionEarly = async (auction) => {
+    if (!web3 || !accounts || accounts.length === 0) return;
+    setActionLoading(auction.auctionContract._address);
+    try {
+      await auction.auctionContract.methods.endEarly().send({ from: accounts[0] });
+      enqueueSnackbar('Auction ended early', { variant: 'success' });
+      // refresh auctions state if refetch callback is provided
+      if (refetchAuctions) {
+        refetchAuctions();
+      }
+    } catch (e) {
+      console.error('[Account] endEarly failed', e);
+      enqueueSnackbar(e?.message || 'End early failed', { variant: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
-    return () => {
-      cancelled = true;
-    };
-  }, [web3, accounts]);
+  useEffect(() => {
+    if (accounts && accounts.length > 0) {
+      refreshBalance();
+    }
+  }, [accounts, refreshBalance]);
 
   useEffect(() => {
     if (!auctions || !accounts || accounts.length === 0) {
@@ -90,8 +109,8 @@ function Account({ auctions }) {
       return;
     }
 
-    // Lọc tất cả auction mà user là seller, lấy auction mới nhất (cuối mảng)
-    const selling = auctions.filter((a) => a.seller === accounts[0]);
+    // Lọc tất cả auction mà user là seller, chỉ lấy những auction chưa ended
+    const selling = auctions.filter((a) => a.seller === accounts[0] && !a.ended);
     if (selling.length > 0) {
       setLatestAuction(selling[selling.length - 1]);
     } else {
@@ -99,15 +118,21 @@ function Account({ auctions }) {
     }
   }, [auctions, accounts]);
 
-  const sellingAuctions = useMemo(() => {
-    if (!auctions || !accounts || accounts.length === 0) return [];
-    return auctions.filter((a) => a.seller === accounts[0]);
-  }, [auctions, accounts]);
-
   const biddingAuctions = useMemo(() => {
     if (!auctions || !accounts || accounts.length === 0) return [];
     return auctions.filter(
-      (a) => a.userBidAmount > 0 || a.highestBidder === accounts[0]
+      (a) =>
+        !a.ended &&
+        (a.userBidAmount > 0 || a.highestBidder === accounts[0])
+    );
+  }, [auctions, accounts]);
+
+  const sellingAuctions = useMemo(() => {
+    if (!auctions || !accounts || accounts.length === 0) return [];
+    return auctions.filter(
+      (a) =>
+        a.seller === accounts[0] &&
+        !a.ended // hide ended/cancelled; include drafts (not started yet) and active
     );
   }, [auctions, accounts]);
 
@@ -287,7 +312,7 @@ function Account({ auctions }) {
                     WebkitTextFillColor: 'transparent',
                   }}
                 >
-                  {ethBalance !== null ? `${ethBalance} ETH` : '...'}
+                  {balanceEth !== null ? `${parseFloat(balanceEth).toFixed(4)} ETH` : '...'}
                 </Typography>
               </Stack>
             </Box>
@@ -487,7 +512,7 @@ function Account({ auctions }) {
               gap: 3,
             }}
           >
-            <MintNftForm onMinted={() => loadOwnedNfts()} />
+            <UploadNftForm onMinted={() => loadOwnedNfts()} />
 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -717,28 +742,36 @@ function Account({ auctions }) {
               value={myAuctionTab}
               onChange={(_, v) => setMyAuctionTab(v)}
               variant="fullWidth"
+              TabIndicatorProps={{
+                sx: {
+                  height: '100%',
+                  top: 0,
+                  borderRadius: 1.5,
+                  background: 'linear-gradient(135deg, #33C2FF 0%, #2090ff 100%)',
+                  boxShadow: '0 6px 18px rgba(51, 194, 255, 0.35)',
+                  zIndex: 0,
+                },
+              }}
               sx={{
                 mb: 1,
                 borderBottom: '1px solid rgba(51, 194, 255, 0.2)',
                 '& .MuiTab-root': {
-                  color: 'white',
-                  fontWeight: 'medium',
+                  color: 'white !important',
+                  opacity: 1,
+                  position: 'relative',
+                  zIndex: 1,
+                  background: 'transparent !important',
+                  fontWeight: 'bold',
                   textTransform: 'none',
-                  fontSize: '0.95rem',
+                  fontSize: '1rem',
                   minHeight: 48,
-                  padding: '12px 16px',
+                  padding: '12px 18px',
                   '&:hover': {
-                    color: 'white',
+                    color: 'white !important',
                   },
                   '&.Mui-selected': {
-                    color: '#33C2FF',
-                    fontWeight: 'bold',
+                    color: '#ffffff !important',
                   },
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: '#33C2FF',
-                  height: 2,
-                  zIndex: 0,
                 },
               }}
             >
@@ -770,51 +803,113 @@ function Account({ auctions }) {
                   </Typography>
                 ) : (
                   <List dense>
-                    {sellingAuctions.map((a) => (
-                      <ListItem
-                        key={a.auctionContract._address}
-                        onClick={() => handleAuctionClick(a.auctionContract._address)}
-                        sx={{
-                          cursor: 'pointer',
-                          background: 'rgba(51, 194, 255, 0.05)',
-                          borderRadius: 2,
-                          mb: 1,
-                          border: '1px solid rgba(51, 194, 255, 0.1)',
-                          '&:hover': {
-                            background: 'rgba(51, 194, 255, 0.15)',
+                    {sellingAuctions.map((a) => {
+                      const isDraft = !a.started;
+                      const canEndEarly = a.started && !a.ended;
+                      return (
+                        <ListItem
+                          key={a.auctionContract._address}
+                          sx={{
+                            background: 'rgba(51, 194, 255, 0.05)',
                             borderRadius: 2,
-                            transform: 'translateX(4px)',
-                            borderColor: 'rgba(51, 194, 255, 0.3)',
-                          },
-                          transition: 'all 0.2s ease',
-                        }}
-                      >
-                        <ListItemText
-                          primary={
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'white' }}>
-                              {a.pinataMetadata?.name || 'Unnamed NFT'}
-                            </Typography>
-                          }
-                          secondary={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                              <Chip
-                                label={`Highest: ${displayInEth(a.highestBid)} ETH`}
+                            mb: 1,
+                            border: '1px solid rgba(51, 194, 255, 0.1)',
+                            '&:hover': {
+                              background: 'rgba(51, 194, 255, 0.15)',
+                              borderRadius: 2,
+                              transform: 'translateX(4px)',
+                              borderColor: 'rgba(51, 194, 255, 0.3)',
+                            },
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <ListItemText
+                            primary={
+                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'white' }}>
+                                {a.pinataMetadata?.name || 'Unnamed NFT'}
+                              </Typography>
+                            }
+                            secondary={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                <Chip
+                                  label={isDraft ? 'Draft (not started)' : `Highest: ${displayInEth(a.highestBid)} ETH`}
+                                  size="small"
+                                  sx={{
+                                    borderColor: '#33C2FF',
+                                    color: '#33C2FF',
+                                    fontWeight: 'bold',
+                                    '& .MuiChip-label': {
+                                      color: '#33C2FF',
+                                    },
+                                  }}
+                                  variant="outlined"
+                                />
+                              </Box>
+                            }
+                          />
+                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            {!isDraft && (
+                              <Button
                                 size="small"
+                                variant="outlined"
+                                onClick={() => handleAuctionClick(a.auctionContract._address)}
                                 sx={{
                                   borderColor: '#33C2FF',
                                   color: '#33C2FF',
+                                  textTransform: 'none',
                                   fontWeight: 'bold',
-                                  '& .MuiChip-label': {
-                                    color: '#33C2FF',
+                                  '&:hover': {
+                                    background: 'rgba(51,194,255,0.1)',
+                                    borderColor: '#33C2FF',
                                   },
                                 }}
+                              >
+                                View
+                              </Button>
+                            )}
+                            {isDraft && (
+                              <Button
+                                size="small"
                                 variant="outlined"
-                              />
-                            </Box>
-                          }
-                        />
-                      </ListItem>
-                    ))}
+                                disabled={actionLoading === a.auctionContract._address}
+                                onClick={() => cancelDraftAuction(a)}
+                                sx={{
+                                  borderColor: '#ff6b6b',
+                                  color: '#ff6b6b',
+                                  textTransform: 'none',
+                                  fontWeight: 'bold',
+                                  '&:hover': {
+                                    background: 'rgba(255,107,107,0.1)',
+                                    borderColor: '#ff6b6b',
+                                  },
+                                }}
+                              >
+                                {actionLoading === a.auctionContract._address ? 'Cancelling...' : 'Cancel'}
+                              </Button>
+                            )}
+                            {canEndEarly && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                disabled={actionLoading === a.auctionContract._address}
+                                onClick={() => endAuctionEarly(a)}
+                                sx={{
+                                  background: 'linear-gradient(135deg, #33C2FF 0%, #123597 100%)',
+                                  color: 'white',
+                                  textTransform: 'none',
+                                  fontWeight: 'bold',
+                                  '&:hover': {
+                                    background: 'linear-gradient(135deg, #123597 0%, #33C2FF 100%)',
+                                  },
+                                }}
+                              >
+                                {actionLoading === a.auctionContract._address ? 'Ending...' : 'End early'}
+                              </Button>
+                            )}
+                          </Box>
+                        </ListItem>
+                      );
+                    })}
                   </List>
                 ))}
 
@@ -829,7 +924,7 @@ function Account({ auctions }) {
                       <ListItem
                         key={a.auctionContract._address}
                         onClick={() => handleAuctionClick(a.auctionContract._address)}
-                        sx={{
+            sx={{
                           cursor: 'pointer',
                           background: 'rgba(51, 194, 255, 0.05)',
                           borderRadius: 2,
@@ -842,8 +937,8 @@ function Account({ auctions }) {
                             borderColor: 'rgba(51, 194, 255, 0.3)',
                           },
                           transition: 'all 0.2s ease',
-                        }}
-                      >
+            }}
+          >
                         <ListItemText
                           primary={
                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'white' }}>
